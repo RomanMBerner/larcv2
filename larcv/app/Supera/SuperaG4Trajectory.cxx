@@ -47,7 +47,7 @@ namespace larcv {
       LARCV_INFO() << "  Voxel count " << vs.size() << " value sum " << vs.sum() << std::endl;
       part_v.emplace_back(std::move(part));
       vs_v.emplace_back(std::move(vs));
-      break;
+      //break;
     }
 
     ev_particles->emplace(std::move(part_v));

@@ -47,5 +47,5 @@ for entry in range(ch.GetEntries()):
 		module.SetEvent(ev)
 
 	proc.process_entry()
-	break
+	#break
 proc.finalize()
