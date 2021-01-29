@@ -91,6 +91,8 @@ namespace larcv {
 
   void ProcessDriver::configure(const std::string config_file)
   {
+    printf(" START CONFIGURE \n");
+    std::cout << " Using config file: " << config_file << std::endl;
     LARCV_DEBUG() << "Called" << std::endl;
     // check state
     if(_processing) {
@@ -111,8 +113,11 @@ namespace larcv {
 		       << std::endl;
       throw larbys();
     }
+    std::cout << " auto const cfg: " << std::endl;
     auto const cfg = main_cfg.get<larcv::PSet>(name());
+    //std::cout << cfg << std::endl;
     configure(cfg);
+    std::cout << " END CONFIGURE " << std::endl;
   }
 
   void ProcessDriver::configure(const PSet& cfg)
@@ -275,91 +280,98 @@ namespace larcv {
 
   bool ProcessDriver::_process_entry_()
   {
-    // Private method to execute processes and change entry number record
-    // This method does not perform any sanity check, hence private and 
-    // should be used by wrapper method which performs necessary checks.
+      std::cout << " IN _process_entry_ FUNCTION " << std::endl;
+      // Private method to execute processes and change entry number record
+      // This method does not perform any sanity check, hence private and 
+      // should be used by wrapper method which performs necessary checks.
 
-    // Execute
-    bool good_status=true;
-    //bool cleared=false;
-    for(auto& p : _proc_v) {
-      good_status = good_status && p->_process_(_io);
-      if(!good_status && _enable_filter) break;
-    }
-    // No event-write to be done if _has_event_creator is set. Otherwise go ahead
-    if(!_has_event_creator) {
-      // If not read mode save entry
-      if(_io.io_mode() != IOManager::kREAD && (!_enable_filter || good_status)) {
-	//cleared = true;
-	_io.save_entry();    
+      // Execute
+      bool good_status=true;
+      //bool cleared=false;
+      for(auto& p : _proc_v) {
+          std::cout << " ==== 1st " << std::endl;
+          good_status = good_status && p->_process_(_io);
+          if(!good_status && _enable_filter) break;
+      }
+      // No event-write to be done if _has_event_creator is set. Otherwise go ahead
+      if(!_has_event_creator) {
+          std::cout << " ==== 2nd " << std::endl;
+          // If not read mode save entry
+          if(_io.io_mode() != IOManager::kREAD && (!_enable_filter || good_status)) {
+              //cleared = true;
+              _io.save_entry();    
+          }
+          /*
+          if(!cleared)
+          _io.clear_entry();
+          cleared=true;
+          */
       }
       /*
-      if(!cleared)
-	_io.clear_entry();
-      cleared=true;
+      if(!cleared && _io.io_mode() == IOManager::kREAD) 
+          _io.clear_entry();
       */
-    }
-    /*
-    if(!cleared && _io.io_mode() == IOManager::kREAD) 
-      _io.clear_entry();
-    */
-    // Bump up entry record
-    ++_current_entry;
-
-    return good_status;
+      // Bump up entry record
+      ++_current_entry;
+      
+      std::cout << " _current_entry: " << _current_entry << std::endl;
+      std::cout << " good_status:    " << good_status << std::endl;
+      
+      return good_status;
   }
 
   bool ProcessDriver::process_entry()
   {
-    LARCV_DEBUG() << "Called" << std::endl;
-    // Public method to process "next" entry
+      std::cout << " IN process_entry FUNCTION " << std::endl;
+      LARCV_DEBUG() << "Called" << std::endl;
+      // Public method to process "next" entry
 
-    // Check state
-    if(!_processing) {
-      LARCV_CRITICAL() << "Must call initialize() before start processing!" << std::endl;
-      throw larbys();
-    }
-
-    // Check if input entry exists in case of read/both io mode
-    if(_io.io_mode() != IOManager::kWRITE) {
-
-      if(_access_entry_v.size() <= _current_entry) {
-	LARCV_NORMAL() << "Entry " << _current_entry << " exceeds available events in a file!" << std::endl;
-	return false;
+      // Check state
+      if(!_processing) {
+          LARCV_CRITICAL() << "Must call initialize() before start processing!" << std::endl;
+          throw larbys();
       }
-      // if exist then move read pointer
-      //_io.clear_entry();
-      _io.read_entry(_access_entry_v[_current_entry]);
-    }
-    // Execute processes
-    return _process_entry_();
+
+      // Check if input entry exists in case of read/both io mode
+      if(_io.io_mode() != IOManager::kWRITE) {
+
+          if(_access_entry_v.size() <= _current_entry) {
+              LARCV_NORMAL() << "Entry " << _current_entry << " exceeds available events in a file!" << std::endl;
+              return false;
+          }
+          // if exist then move read pointer
+          //_io.clear_entry();
+          _io.read_entry(_access_entry_v[_current_entry]);
+      }
+      // Execute processes
+      return _process_entry_();
   }
   
   bool ProcessDriver::process_entry(size_t entry, bool force_reload)
   {
-    LARCV_DEBUG() << "Called" << std::endl;
-    // Public method to process "specified" entry
+      LARCV_DEBUG() << "Called" << std::endl;
+      // Public method to process "specified" entry
 
-    // Check state
-    if(!_processing) {
-      LARCV_CRITICAL() << "Must call initialize() before start processing!" << std::endl;
-      throw larbys();
-    }
-
-    // Check if input entry exists in case of read/both io mode
-    if(_io.io_mode() != IOManager::kWRITE) {
-
-      if(_access_entry_v.size() <= entry) {
-	LARCV_ERROR() << "Entry " << entry << " exceeds available events in a file!" << std::endl;
-	return false;
+      // Check state
+      if(!_processing) {
+          LARCV_CRITICAL() << "Must call initialize() before start processing!" << std::endl;
+          throw larbys();
       }
-      // if exist then move read pointer
-      //_io.clear_entry();
-      _io.read_entry(_access_entry_v[entry],force_reload);
-      _current_entry = entry;
-    }
-    // Execute processes
-    return _process_entry_();
+
+      // Check if input entry exists in case of read/both io mode
+      if(_io.io_mode() != IOManager::kWRITE) {
+
+          if(_access_entry_v.size() <= entry) {
+              LARCV_ERROR() << "Entry " << entry << " exceeds available events in a file!" << std::endl;
+              return false;
+          }
+          // if exist then move read pointer
+          //_io.clear_entry();
+          _io.read_entry(_access_entry_v[entry],force_reload);
+          _current_entry = entry;
+        }
+        // Execute processes
+        return _process_entry_();
   }
   
   void ProcessDriver::batch_process(size_t start_entry,size_t num_entries){
@@ -370,8 +382,8 @@ namespace larcv {
 
     // Check state
     if(!_processing) {
-      LARCV_CRITICAL() << "Must call initialize() before start processing!" << std::endl;
-      throw larbys();
+        LARCV_CRITICAL() << "Must call initialize() before start processing!" << std::endl;
+        throw larbys();
     }
 
     // Define the max entry index for processing (1 above last entry to be processed)
@@ -379,22 +391,23 @@ namespace larcv {
 
     // Check if start_entry is 0 for write mode (no entry should be specified for write mode)
     if(_io.io_mode() == IOManager::kWRITE){
-      if(start_entry) {
-	LARCV_CRITICAL() << "Cannot specify start entry (1st arg) in kWRITE IO mode!" << std::endl;
-	throw larbys();
-      }
-      max_entry = _current_entry + num_entries;
+        if(start_entry) {
+            LARCV_CRITICAL() << "Cannot specify start entry (1st arg) in kWRITE IO mode!" << std::endl;
+            throw larbys();
+        }
+        max_entry = _current_entry + num_entries;
 
-    }else{
-      _current_entry = start_entry;
-      if(!num_entries) max_entry = start_entry + _io.get_n_entries();
+    }
+    else{
+        _current_entry = start_entry;
+        if(!num_entries) max_entry = start_entry + _io.get_n_entries();
     }
 
     // Make sure max entry does not exceed the physical max from input. If so, truncate.
     if(_io.io_mode() != IOManager::kWRITE && max_entry > _access_entry_v.size()){
       LARCV_WARNING() << "Requested to process entries from " << start_entry << " to " << max_entry-1 
-		      << " ... but there are only " << _access_entry_v.size() << " entries in input!" << std::endl
-		      << "Truncating the end entry to " << _access_entry_v.size()-1 << std::endl;
+      << " ... but there are only " << _access_entry_v.size() << " entries in input!" << std::endl
+      << "Truncating the end entry to " << _access_entry_v.size()-1 << std::endl;
       max_entry = _access_entry_v.size();
     }
 
@@ -404,16 +417,16 @@ namespace larcv {
     while(_current_entry < max_entry) {
       
       if(_io.io_mode() != IOManager::kWRITE) {
-	//_io.clear_entry();
-	_io.read_entry(_access_entry_v[_current_entry]);
+        //_io.clear_entry();
+        _io.read_entry(_access_entry_v[_current_entry]);
       }
       _process_entry_();
 
       ++num_processed;
       if(!num_fraction) { 
-	LARCV_NORMAL() << "Processed " << num_processed << " entries..." << std::endl;
+        LARCV_NORMAL() << "Processed " << num_processed << " entries..." << std::endl;
       }else if(num_processed%num_fraction==0) {
-	LARCV_NORMAL() << "Processed " << 10*int(num_processed/num_fraction) << " %..." << std::endl;
+        LARCV_NORMAL() << "Processed " << 10*int(num_processed/num_fraction) << " %..." << std::endl;
       }
     }
 
@@ -421,6 +434,7 @@ namespace larcv {
   
   void ProcessDriver::finalize()
   {
+    std::cout << " FINALIZE " << std::endl;
     LARCV_DEBUG() << "called" << std::endl;
 
     for(auto& p : _proc_v) {
@@ -436,18 +450,18 @@ namespace larcv {
     for(auto& p : _proc_v) {
       if(!p->_profile) continue;
       ss << "  \033[93m" << std::setw(20) << std::setfill(' ') << p->name() << "\033[00m"
-	 << " ... # call " << std::setw(5) << std::setfill(' ') << p->_proc_count
-	 << " ... total time " << p->_proc_time << " [s]"
-	 << " ... average time " << p->_proc_time / p->_proc_count << " [s/process]"
-	 << std::endl;
+      << " ... # call " << std::setw(5) << std::setfill(' ') << p->_proc_count
+      << " ... total time " << p->_proc_time << " [s]"
+      << " ... average time " << p->_proc_time / p->_proc_count << " [s/process]"
+      << std::endl;
     }
 
     std::string msg(ss.str());
     if(!msg.empty()) 
       LARCV_NORMAL() << "Simple time profiling requested and run..." << std::endl
-		     << "  ================== " << name() << " Profile Report ==================" << std::endl
-		     << msg
-		     << std::endl;
+      << "  ================== " << name() << " Profile Report ==================" << std::endl
+      << msg
+      << std::endl;
 
     if(_fout) {
       LARCV_NORMAL() << "Closing analysis output file..." << std::endl;
