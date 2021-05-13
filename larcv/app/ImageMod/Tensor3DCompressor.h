@@ -49,7 +49,7 @@ namespace larcv {
     std::vector<unsigned short> _pool_type_v;
     std::vector<std::string> _tensor3d_producer_v;
     std::vector<std::string> _output_producer_v;
-    std::vector<size_t> _comp_factor_v;
+    std::vector<float> _comp_factor_v;
     std::vector<float>  _scale_factor_v;
   };
 

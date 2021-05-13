@@ -41,9 +41,9 @@ namespace larcv {
   {
     configure_labels(cfg);
 
-    _comp_factor_v = cfg.get<std::vector<size_t> >("CompressionFactorList", _comp_factor_v);
+    _comp_factor_v = cfg.get<std::vector<float> >("CompressionFactorList", _comp_factor_v);
     if (_comp_factor_v.empty()) {
-      auto comp_factor = cfg.get<size_t>("CompressionFactor", 1);
+      auto comp_factor = cfg.get<float>("CompressionFactor", 1.);
       _comp_factor_v.resize(_tensor3d_producer_v.size(), comp_factor);
     } else if (_comp_factor_v.size() != _tensor3d_producer_v.size()) {
       LARCV_CRITICAL() << "CompressionFactorList size mismatch with other input parameters!" << std::endl;
@@ -106,9 +106,9 @@ namespace larcv {
       Voxel3DMeta meta;
       meta.set(orig_meta.min_x(), orig_meta.min_y(), orig_meta.min_z(),
                orig_meta.max_x(), orig_meta.max_y(), orig_meta.max_z(),
-               orig_meta.num_voxel_x() / comp_factor,
-               orig_meta.num_voxel_y() / comp_factor,
-               orig_meta.num_voxel_z() / comp_factor,
+               (size_t)(orig_meta.num_voxel_x() / comp_factor),
+               (size_t)(orig_meta.num_voxel_y() / comp_factor),
+               (size_t)(orig_meta.num_voxel_z() / comp_factor),
                orig_meta.unit());
 
       larcv::VoxelSet vs;
