@@ -1,0 +1,28 @@
+ProcessDriver: {
+  Verbosity:    3
+  EnableFilter: false
+  RandomAccess: false
+  ProcessType:  ["SegWeightVertex3D"]
+  ProcessName:  ["SegWeightVertex3D"]
+
+  IOManager: {
+		Verbosity: 2
+		Name: "IOManager"
+		IOMode: 2
+	}
+  ProcessList: {
+
+
+		SegWeightVertex3D: {
+			Verbosity: 3
+			Tensor3DProducer: "pcluster"
+			ParticleProducer: "pcluster"
+			ProbNonZero: 1.0
+			ProbNeighbors: 0.5
+			DistanceNeighbors: 2
+			OutputProducer: "weights"
+		}
+
+  }
+}
+
